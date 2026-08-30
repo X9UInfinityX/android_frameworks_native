@@ -18,11 +18,6 @@
 
 #include "Utils/OverlayUtils.h"
 
-#include <condition_variable>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <thread>
 #include <vector>
 
 #include <ftl/flags.h>
@@ -71,10 +66,6 @@ public:
 private:
     bool initCheck() const;
 
-    void startPanelRefreshPoller();
-    void panelRefreshPollLoop(const std::string& nodePath);
-    bool usesPanelRefreshRate() const { return mPanelPollThread.joinable(); }
-
     using Buffers = std::vector<sp<GraphicBuffer>>;
 
     static Buffers draw(int refreshRate, int renderFps, bool idle, SkColor,
@@ -105,13 +96,6 @@ private:
     std::optional<Fps> mRenderFps;
     bool mIsVrrIdle = false;
     size_t mFrame = 0;
-
-    std::optional<Fps> mPanelRefreshRate;
-    std::mutex mMutex;
-    std::thread mPanelPollThread;
-    std::mutex mPollMutex;
-    std::condition_variable mPollCondition;
-    bool mPollStop = false;
 
     const FpsRange mFpsRange; // For color interpolation.
     const ftl::Flags<Features> mFeatures;
