@@ -74,6 +74,13 @@ private:
 
     HidUsageAccumulator mHidUsageAccumulator;
 
+    // The OPPO Spruce camera button reports a swipe as a key event followed by an
+    // EV_ABS/ABS_DISTANCE event.  ColorOS forwards the distance in NotifyKeyArgs::when,
+    // which the stock Camera app reads from KeyEvent's raw eventTime field.
+    bool mSpruceSwipePending{false};
+    int32_t mSpruceSwipeValue{0};
+    int32_t mSpruceSwipeScanCode{0};
+
     struct LedState {
         bool avail{}; // led is available
         bool on{};    // we think the led is currently on

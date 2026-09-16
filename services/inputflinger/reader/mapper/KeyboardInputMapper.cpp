@@ -265,6 +265,8 @@ std::list<NotifyArgs> KeyboardInputMapper::process(const RawEvent& rawEvent) {
     mHidUsageAccumulator.process(rawEvent);
     switch (rawEvent.type) {
         case EV_KEY: {
+            mSpruceSwipePending = false;
+
             // Skip processing repeated keys (value == 2) since auto repeat is handled by Android
             // internally.
             if (rawEvent.value == 2) {
@@ -272,8 +274,25 @@ std::list<NotifyArgs> KeyboardInputMapper::process(const RawEvent& rawEvent) {
             }
 
             const int32_t scanCode = rawEvent.code;
+            if (rawEvent.value != 0 &&
+                (scanCode == BTN_TRIGGER_HAPPY22 || scanCode == BTN_TRIGGER_HAPPY23)) {
+                // Defer the swipe key-down until the following ABS_DISTANCE sample. This
+                // intentionally mirrors ColorOS InputReader: Camera treats the raw KeyEvent
+                // eventTime as the signed per-sample slide distance, not as a clock value.
+                mSpruceSwipePending = true;
+                mSpruceSwipeScanCode = scanCode;
+                break;
+            }
             if (isSupportedScanCode(scanCode)) {
                 out += processKey(rawEvent.when, rawEvent.readTime, rawEvent.value != 0, scanCode,
+                                  mHidUsageAccumulator.consumeCurrentHidUsage());
+            }
+            break;
+        }
+        case EV_ABS: {
+            if (mSpruceSwipePending) {
+                mSpruceSwipeValue = rawEvent.value;
+                out += processKey(rawEvent.when, rawEvent.readTime, true, mSpruceSwipeScanCode,
                                   mHidUsageAccumulator.consumeCurrentHidUsage());
             }
             break;
@@ -386,7 +405,17 @@ std::list<NotifyArgs> KeyboardInputMapper::processKey(nsecs_t when, nsecs_t read
         policyFlags |= POLICY_FLAG_DISABLE_KEY_REPEAT;
     }
 
-    out.emplace_back(NotifyKeyArgs(getContext()->getNextId(), when, readTime, deviceId,
+    // ColorOS keeps the real timestamp for InputReader's key-down bookkeeping, but exposes the
+    // Spruce ABS_DISTANCE sample as KeyEvent's raw eventTime. The stock Camera app reads that
+    // field as its per-sample zoom delta. Substituting only here also preserves a valid downTime
+    // for the complete swipe sequence.
+    nsecs_t eventTime = when;
+    if (mSpruceSwipePending) {
+        eventTime = static_cast<nsecs_t>(mSpruceSwipeValue);
+        mSpruceSwipePending = false;
+    }
+
+    out.emplace_back(NotifyKeyArgs(getContext()->getNextId(), eventTime, readTime, deviceId,
                                    getEventSource(), getDisplayId(), policyFlags,
                                    down ? AKEY_EVENT_ACTION_DOWN : AKEY_EVENT_ACTION_UP, flags,
                                    keyCode, scanCode, keyMetaState, downTime));
