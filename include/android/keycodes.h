@@ -888,6 +888,25 @@ enum {
     /** Contextual Insert key. */
     AKEYCODE_CONTEXTUAL_INSERT = 340,
 
+    /** OPPO Spruce capacitive camera button: light press */
+    AKEYCODE_SPRUCE_PRESS_LIGHT = 765,
+    /** OPPO Spruce capacitive camera button: hard press */
+    AKEYCODE_SPRUCE_PRESS_HARD = 766,
+    /** OPPO Spruce capacitive camera button: short press */
+    AKEYCODE_SPRUCE_PRESS_SHORT = 767,
+    /** OPPO Spruce capacitive camera button: long press */
+    AKEYCODE_SPRUCE_PRESS_LONG = 768,
+    /** OPPO Spruce capacitive camera button: double click */
+    AKEYCODE_SPRUCE_DOUBLE_CLICK = 769,
+    /** OPPO Spruce capacitive camera button: upward swipe */
+    AKEYCODE_SPRUCE_SWIP_UP = 770,
+    /** OPPO Spruce capacitive camera button: downward swipe */
+    AKEYCODE_SPRUCE_SWIP_DOWN = 771,
+    /** OPPO Spruce capacitive camera button: real finger action */
+    AKEYCODE_SPRUCE_REAL_FINGER_ACTION = 772,
+    /** OPPO Spruce capacitive camera button: launch camera */
+    AKEYCODE_SPRUCE_START_CAMERA = 773,
+
     // NOTE: If you add a new keycode here you must also add it to several other files.
     //       Refer to frameworks/base/core/java/android/view/KeyEvent.java for the full list.
 };
